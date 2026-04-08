@@ -366,6 +366,13 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
     <div class="form-row full">
       <div class="form-group"><label>Guest / Customer Present</label><input type="text" id="m-guest"></div>
     </div>
+    <div id="m-mileage-section" style="display:none;">
+      <div class="form-row">
+        <div class="form-group"><label style="color:var(--accent2)">Start Miles</label><input type="number" id="m-odo-start" placeholder="e.g. 45200" oninput="calcModalOdo()"></div>
+        <div class="form-group"><label style="color:var(--accent2)">End Miles</label><input type="number" id="m-odo-end" placeholder="e.g. 45271" oninput="calcModalOdo()"></div>
+      </div>
+      <div style="background:#edf7f2;border:1px solid var(--accent2);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-family:var(--mono);font-size:13px;color:var(--accent2)" id="m-odo-result">Enter end miles to calculate</div>
+    </div>
     <div class="form-row full" id="m-travel-row">
       <div class="form-group"><label>Travel Notes</label><input type="text" id="m-travel-notes"></div>
     </div>
@@ -478,7 +485,7 @@ async function addToDB(exp) {
     category: exp.category,
     date: exp.date,
     vendor: exp.vendor,
-    amount: exp.amount,
+    amount: isNaN(exp.amount) ? 0 : (exp.amount || 0),
     guest: exp.guest || '',
     notes: exp.notes || '',
     travel_notes: exp.travelNotes || '',
@@ -730,12 +737,11 @@ async function submitExpense() {
     if (cat === 'Personal Car Mileage' && !odoStart) { showFormError('Please enter a starting odometer reading.'); return; }
     if (cat !== 'Personal Car Mileage' && (!amtRaw || isNaN(amount) || amount <= 0)) { showFormError('Please enter a valid amount.'); return; }
     if (!date) { showFormError('Please select a date.'); return; }
-    // For mileage with only start, set defaults
-    if (cat === 'Personal Car Mileage' && !vendor.trim()) {
-      document.getElementById('exp-vendor').value = 'Highlander Car Mileage (in progress)';
-    }
-    if (cat === 'Personal Car Mileage' && (!amtRaw || isNaN(amount))) {
-      document.getElementById('exp-amount').value = '0.00';
+    // For mileage, ensure we always have a valid amount (0 if in progress)
+    let finalAmount = amount;
+    if (cat === 'Personal Car Mileage' && (isNaN(amount) || !amtRaw)) {
+      finalAmount = 0;
+      document.getElementById('exp-amount').value = '0';
     }
 
     const btn = document.getElementById('submit-btn');
@@ -751,7 +757,7 @@ async function submitExpense() {
       }
       setLocalExpenses(exps);
     } else {
-      const newExp = {category:cat, date, vendor, amount, guest, notes, travelNotes, odoStart, odoEnd, recurring:false};
+      const newExp = {category:cat, date, vendor, amount:finalAmount, guest, notes, travelNotes, odoStart, odoEnd, recurring:false};
       const dbId = await addToDB(newExp);
       newExp.id = dbId;
       exps.push(newExp);
@@ -814,7 +820,14 @@ function editExpense(id) {
   document.getElementById('m-guest').value=e.guest||'';
   document.getElementById('m-travel-notes').value=e.travelNotes||'';
   document.getElementById('m-notes').value=e.notes||'';
-  document.getElementById('m-travel-row').style.display=e.category==='Personal Car Mileage'?'block':'none';
+  const isMile = e.category==='Personal Car Mileage';
+  document.getElementById('m-travel-row').style.display=isMile?'block':'none';
+  document.getElementById('m-mileage-section').style.display=isMile?'block':'none';
+  if(isMile) {
+    document.getElementById('m-odo-start').value=e.odoStart||'';
+    document.getElementById('m-odo-end').value=e.odoEnd||'';
+    calcModalOdo();
+  }
   document.getElementById('edit-modal').classList.add('open');
 }
 
@@ -824,14 +837,27 @@ async function saveEdit() {
     const exps = getExpenses();
     const i = exps.findIndex(e => e.id === id);
     if (i > -1) {
+      const mOdoStart = parseFloat(document.getElementById('m-odo-start').value)||null;
+      const mOdoEnd = parseFloat(document.getElementById('m-odo-end').value)||null;
+      const mCatVal = document.getElementById('m-cat').value;
+      let mAmount = parseFloat(document.getElementById('m-amount').value)||0;
+      if(mCatVal==='Personal Car Mileage' && mOdoStart && mOdoEnd && mOdoEnd > mOdoStart) {
+        mAmount = parseFloat(((mOdoEnd - mOdoStart) * RATE).toFixed(2));
+      }
+      let mVendor = document.getElementById('m-vendor').value.trim();
+      if(mCatVal==='Personal Car Mileage' && mOdoStart && mOdoEnd && mOdoEnd > mOdoStart) {
+        mVendor = mVendor || ('Highlander Car Mileage (' + (mOdoEnd-mOdoStart) + ' mi)');
+      }
       const updated = {...exps[i],
-        category: document.getElementById('m-cat').value,
+        category: mCatVal,
         date: document.getElementById('m-date').value,
-        vendor: document.getElementById('m-vendor').value.trim(),
-        amount: parseFloat(document.getElementById('m-amount').value),
+        vendor: mVendor || exps[i].vendor,
+        amount: mAmount,
         guest: document.getElementById('m-guest').value.trim(),
         travelNotes: document.getElementById('m-travel-notes').value.trim(),
         notes: document.getElementById('m-notes').value.trim(),
+        odoStart: mOdoStart || exps[i].odoStart,
+        odoEnd: mOdoEnd || exps[i].odoEnd,
       };
       await updateInDB(updated);
       exps[i] = updated;
@@ -842,6 +868,23 @@ async function saveEdit() {
   } catch(err) {
     showBanner('⚠️ Could not update: ' + err.message, 'error');
     console.error(err);
+  }
+}
+
+function calcModalOdo() {
+  const start = parseFloat(document.getElementById('m-odo-start').value)||0;
+  const end = parseFloat(document.getElementById('m-odo-end').value)||0;
+  const el = document.getElementById('m-odo-result');
+  if (start && end && end > start) {
+    const miles = end - start;
+    const amt = (miles * RATE).toFixed(2);
+    el.textContent = \`\${miles} miles × $\${RATE}/mile = $\${amt}\`;
+    document.getElementById('m-amount').value = amt;
+    document.getElementById('m-vendor').value = \`Highlander Car Mileage (\${miles} mi)\`;
+  } else if (start && !end) {
+    el.textContent = \`Started at \${start} — enter end miles to calculate\`;
+  } else {
+    el.textContent = 'Enter end miles to calculate';
   }
 }
 
