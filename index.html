@@ -261,7 +261,7 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
     </div>
 
     <div class="mileage-box" id="mileage-box" style="display:none;">
-      <span class="mb-label">🚗 Odometer / Miles — $0.725/mile (IRS Rate)</span>
+      <span class="mb-label">🚗 Odometer / Miles — $0.725/mile (IRS Rate) · End miles optional</span>
       <div class="odometer-row">
         <div class="form-group" style="gap:3px;">
           <label style="color:var(--accent2)">Start Miles</label>
@@ -276,7 +276,7 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
           <div class="miles-result" id="miles-result">0 mi<small>tap to fill →</small></div>
         </div>
       </div>
-      <div class="rate-note">Enter odometer readings — miles × $0.725 = reimbursement</div>
+      <div class="rate-note">Enter start now — tap edit at end of day to add end miles &amp; calculate</div>
       <div class="form-group" style="margin-top:10px;">
         <label style="color:var(--accent2)">Travel Notes (destination / purpose)</label>
         <input type="text" id="travel-notes" placeholder="e.g. Client visit — Somerset, NJ" style="background:#fff;border:1.5px solid #b2ddc8;border-radius:8px;padding:10px 12px;font-size:15px;width:100%;outline:none;font-family:'Lato',sans-serif;">
@@ -406,7 +406,7 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
 const SUPABASE_URL = 'https://etvvyjeovibkidkqbvxl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0dnZ5amVvdmlia2lka3FidnhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNzg3ODUsImV4cCI6MjA5MDg1NDc4NX0.rSILCVL-lIw8GtufZ5isrwYOi0fYxU1F8gJ--pBr2zs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const USER_ID = 'tj'; // single user for now, easy to expand later
+let USER_ID = 'tj'; // will be set from Supabase auth session
 
 const RATE = 0.725;
 const CATS = ['Customer Engagements','Personal Travel Meals','Lodging','Ground Transportation','Parking','EZPass/Tolls','Personal Car Mileage','Internet','Mobile Phone','Office Rent','MedicalDentalVision Insurance','Business Email Account','Other'];
@@ -559,6 +559,7 @@ CATS.forEach(c => { const o=document.createElement('option'); o.value=c; o.textC
 async function checkAuth() {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
+    USER_ID = session.user.id;
     document.getElementById('login-overlay').classList.add('hidden');
     return true;
   } else {
@@ -584,6 +585,8 @@ async function doLogin() {
     btn.textContent = 'SIGN IN';
     btn.disabled = false;
   } else {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) USER_ID = session.user.id;
     document.getElementById('login-overlay').classList.add('hidden');
     await init();
   }
@@ -684,14 +687,25 @@ function handleCatChange() {
 function calcOdo() {
   const start = parseFloat(document.getElementById('odo-start').value)||0;
   const end = parseFloat(document.getElementById('odo-end').value)||0;
-  const miles = Math.max(0, end-start);
-  const amt = (miles*RATE).toFixed(2);
   const el = document.getElementById('miles-result');
-  el.innerHTML = `${miles} mi<small>$${amt} — tap →</small>`;
-  el.onclick = () => {
-    document.getElementById('exp-amount').value = amt;
-    document.getElementById('exp-vendor').value = `Highlander Car Mileage (${miles} mi)`;
-  };
+  if (start && !end) {
+    el.innerHTML = `Trip started<small>${start} mi — add end later</small>`;
+    el.onclick = () => {
+      document.getElementById('exp-amount').value = '0.00';
+      document.getElementById('exp-vendor').value = 'Highlander Car Mileage (in progress)';
+    };
+  } else if (start && end && end > start) {
+    const miles = end - start;
+    const amt = (miles * RATE).toFixed(2);
+    el.innerHTML = `${miles} mi<small>$${amt} — tap →</small>`;
+    el.onclick = () => {
+      document.getElementById('exp-amount').value = amt;
+      document.getElementById('exp-vendor').value = `Highlander Car Mileage (${miles} mi)`;
+    };
+  } else {
+    el.innerHTML = `0 mi<small>tap to fill →</small>`;
+    el.onclick = null;
+  }
 }
 
 async function submitExpense() {
@@ -712,9 +726,17 @@ async function submitExpense() {
     const editId = document.getElementById('edit-id').value;
 
     if (!cat) { showFormError('Please select a category.'); return; }
-    if (!vendor) { showFormError('Please enter a vendor.'); return; }
-    if (!amtRaw || isNaN(amount) || amount <= 0) { showFormError('Please enter a valid amount.'); return; }
+    if (!vendor && cat !== 'Personal Car Mileage') { showFormError('Please enter a vendor.'); return; }
+    if (cat === 'Personal Car Mileage' && !odoStart) { showFormError('Please enter a starting odometer reading.'); return; }
+    if (cat !== 'Personal Car Mileage' && (!amtRaw || isNaN(amount) || amount <= 0)) { showFormError('Please enter a valid amount.'); return; }
     if (!date) { showFormError('Please select a date.'); return; }
+    // For mileage with only start, set defaults
+    if (cat === 'Personal Car Mileage' && !vendor.trim()) {
+      document.getElementById('exp-vendor').value = 'Highlander Car Mileage (in progress)';
+    }
+    if (cat === 'Personal Car Mileage' && (!amtRaw || isNaN(amount))) {
+      document.getElementById('exp-amount').value = '0.00';
+    }
 
     const btn = document.getElementById('submit-btn');
     btn.textContent = 'Saving...'; btn.disabled = true;
@@ -853,14 +875,16 @@ function renderLog() {
     const d=new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
     const badge=e.recurring?`<span class="badge">recurring</span>`:'';
     const sub=e.guest?` · ${e.guest}`:(e.travelNotes?` · 📍 ${e.travelNotes}`:'');
+    const inProgress = e.category==='Personal Car Mileage' && e.amount===0;
+    const tripBadge = inProgress ? '<span class="badge" style="background:#fff3e0;color:#e65100;">in progress</span>' : '';
     return `<div class="expense-item ${e.recurring?'recurring':''}">
       <div class="cat-dot ${dot}"></div>
       <div class="expense-info">
-        <div class="expense-vendor">${e.vendor}${badge}</div>
+        <div class="expense-vendor">${e.vendor}${badge}${tripBadge}</div>
         <div class="expense-meta">${e.category}${sub}</div>
       </div>
       <div class="expense-right">
-        <div class="expense-amt">$${e.amount.toFixed(2)}</div>
+        <div class="expense-amt">${inProgress ? '⏳' : '$'+e.amount.toFixed(2)}</div>
         <div class="expense-date">${d}</div>
       </div>
       <div class="action-btns">
