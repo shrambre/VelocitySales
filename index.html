@@ -758,7 +758,7 @@ async function submitExpense() {
     if (editId) {
       const i = exps.findIndex(e => String(e.id) === String(editId));
       if (i > -1) {
-        const updated = {...exps[i], category:cat, date, vendor, amount, guest, notes, travelNotes, odoStart, odoEnd};
+        const updated = {...exps[i], category:cat, date, vendor, amount:finalAmount, guest, notes, travelNotes, odoStart, odoEnd};
         await updateInDB(updated);
         exps[i] = updated;
       }
@@ -1030,7 +1030,7 @@ function renderReport() {
       <td>${e.vendor}${guestLine}${isMile?odoLine:''}${isMile?travelLine:''}${notesLine}</td>
       <td style="color:var(--muted);white-space:nowrap;font-size:11px">${d}</td>
       <td style="font-size:11px;color:var(--muted)">${e.category}</td>
-      <td class="amt-col">$${e.amount.toFixed(2)}</td>
+      <td class="amt-col">$${(e.amount||0).toFixed(2)}</td>
       <td style="text-align:center"><button class="icon-btn edit" onclick="editExpense(${e.id})" style="font-size:13px">✏️</button></td>
     </tr>`;
   }).join('');
@@ -1051,7 +1051,7 @@ function renderReport() {
         const mi=(e.odoStart&&e.odoEnd)?(e.odoEnd-e.odoStart)+' mi':'';
         return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f3f7;font-size:12px;">
           <span>${d} — ${e.travelNotes||e.vendor} ${mi?'('+mi+')':''}</span>
-          <span style="color:var(--accent);font-family:var(--mono)">$${e.amount.toFixed(2)}</span>
+          <span style="color:var(--accent);font-family:var(--mono)">$${(e.amount||0).toFixed(2)}</span>
         </div>`;
       }).join('')+
       `<div style="margin-top:8px;padding-top:6px;font-weight:700;display:flex;justify-content:space-between;font-size:13px;">
