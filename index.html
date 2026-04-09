@@ -885,11 +885,11 @@ function calcModalOdo() {
   if (start && end && end > start) {
     const miles = end - start;
     const amt = (miles * RATE).toFixed(2);
-    el.textContent = \`\${miles} miles × $\${RATE}/mile = $\${amt}\`;
+    el.textContent = `\${miles} miles × $\${RATE}/mile = $\${amt}`;
     document.getElementById('m-amount').value = amt;
-    document.getElementById('m-vendor').value = \`Highlander Car Mileage (\${miles} mi)\`;
+    document.getElementById('m-vendor').value = `Highlander Car Mileage (\${miles} mi)`;
   } else if (start && !end) {
-    el.textContent = \`Started at \${start} — enter end miles to calculate\`;
+    el.textContent = `Started at \${start} — enter end miles to calculate`;
   } else {
     el.textContent = 'Enter end miles to calculate';
   }
