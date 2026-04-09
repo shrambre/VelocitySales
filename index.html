@@ -585,17 +585,24 @@ async function doLogin() {
   btn.textContent = 'SIGNING IN...';
   btn.disabled = true;
 
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) {
-    errEl.textContent = 'Invalid email or password.';
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      errEl.textContent = 'Invalid email or password. (' + error.message + ')';
+      errEl.style.display = 'block';
+      btn.textContent = 'SIGN IN';
+      btn.disabled = false;
+    } else {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) USER_ID = session.user.id;
+      document.getElementById('login-overlay').classList.add('hidden');
+      await init();
+    }
+  } catch(err) {
+    errEl.textContent = 'Error: ' + err.message;
     errEl.style.display = 'block';
     btn.textContent = 'SIGN IN';
     btn.disabled = false;
-  } else {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session) USER_ID = session.user.id;
-    document.getElementById('login-overlay').classList.add('hidden');
-    await init();
   }
 }
 
@@ -1067,7 +1074,17 @@ async function clearMonth() {
 }
 
 document.getElementById('edit-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-init().catch(err => console.error('Init error:', err));
+
+// Safe startup — never lets a crash prevent doLogin from working
+(async function startup() {
+  try {
+    await init();
+  } catch(err) {
+    console.error('Init error:', err);
+    // Make sure login overlay is visible so user can sign in
+    try { document.getElementById('login-overlay').classList.remove('hidden'); } catch(e) {}
+  }
+})();
 </script>
 </body>
 </html>
