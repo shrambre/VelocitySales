@@ -416,8 +416,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let USER_ID = 'tj'; // will be set from Supabase auth session
 
 const RATE = 0.725;
-const CATS = ['Customer Engagements','Personal Travel Meals','Lodging','Ground Transportation','Parking','EZPass/Tolls','Personal Car Mileage','Internet','Mobile Phone','Office Rent','MedicalDentalVision Insurance','Business Email Account','Other'];
-const CAT_COLORS = {'Customer Engagements':'cat-meals','Personal Travel Meals':'cat-meals','Lodging':'cat-lodging','Personal Car Mileage':'cat-mileage','Parking':'cat-parking','EZPass/Tolls':'cat-tolls','MedicalDentalVision Insurance':'cat-insurance','Mobile Phone':'cat-phone','Office Rent':'cat-rent','Internet':'cat-internet','Business Email Account':'cat-email','Ground Transportation':'cat-transport','Other':'cat-other'};
+const CATS = ['Customer Engagements','Personal Travel Meals','Lodging','Rental Car','Ground Transportation','Parking','EZPass/Tolls','Personal Car Mileage','Internet','Mobile Phone','Office Rent','MedicalDentalVision Insurance','Business Email Account','Professional Fees','Other'];
+const CAT_COLORS = {'Customer Engagements':'cat-meals','Personal Travel Meals':'cat-meals','Lodging':'cat-lodging','Rental Car':'cat-transport','Personal Car Mileage':'cat-mileage','Parking':'cat-parking','EZPass/Tolls':'cat-tolls','MedicalDentalVision Insurance':'cat-insurance','Mobile Phone':'cat-phone','Office Rent':'cat-rent','Internet':'cat-internet','Business Email Account':'cat-email','Ground Transportation':'cat-transport','Professional Fees':'cat-other','Other':'cat-other'};
 const RECURRING_DEFAULTS = [
   {id:'r1',vendor:'Office Rent',category:'Office Rent',amount:1200.00,enabled:true},
   {id:'r2',vendor:'BCBS Health',category:'MedicalDentalVision Insurance',amount:2670.12,enabled:true},
