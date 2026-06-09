@@ -702,7 +702,7 @@ function handleCatChange() {
   const cat = document.getElementById('cat-select').value;
   document.getElementById('mileage-box').style.display = cat==='Personal Car Mileage' ? 'block' : 'none';
   document.getElementById('guest-row').style.display = cat==='Customer Engagements' ? 'block' : 'none';
-  if (cat==='Personal Car Mileage') document.getElementById('exp-vendor').value = 'Highlander Car Mileage';
+  if (cat==='Personal Car Mileage') document.getElementById('exp-vendor').value = 'Car Mileage';
 }
 
 function calcOdo() {
@@ -713,7 +713,7 @@ function calcOdo() {
     el.innerHTML = `Trip started<small>${start} mi — add end later</small>`;
     el.onclick = () => {
       document.getElementById('exp-amount').value = '0.00';
-      document.getElementById('exp-vendor').value = 'Highlander Car Mileage (in progress)';
+      document.getElementById('exp-vendor').value = 'Car Mileage (in progress)';
     };
   } else if (start && end && end > start) {
     const miles = end - start;
@@ -721,7 +721,7 @@ function calcOdo() {
     el.innerHTML = `${miles} mi<small>$${amt} — tap →</small>`;
     el.onclick = () => {
       document.getElementById('exp-amount').value = amt;
-      document.getElementById('exp-vendor').value = `Highlander Car Mileage (${miles} mi)`;
+      document.getElementById('exp-vendor').value = `Car Mileage (${miles} mi)`;
     };
   } else {
     el.innerHTML = `0 mi<small>tap to fill →</small>`;
@@ -860,7 +860,7 @@ async function saveEdit() {
       }
       let mVendor = document.getElementById('m-vendor').value.trim();
       if(mCatVal==='Personal Car Mileage' && mOdoStart && mOdoEnd && mOdoEnd > mOdoStart) {
-        mVendor = mVendor || ('Highlander Car Mileage (' + (mOdoEnd-mOdoStart) + ' mi)');
+        mVendor = mVendor || ('Car Mileage (' + (mOdoEnd-mOdoStart) + ' mi)');
       }
       const updated = {...exps[i],
         category: mCatVal,
@@ -894,7 +894,7 @@ function calcModalOdo() {
     const amt = (miles * RATE).toFixed(2);
     el.textContent = `\${miles} miles × $\${RATE}/mile = $\${amt}`;
     document.getElementById('m-amount').value = amt;
-    document.getElementById('m-vendor').value = `Highlander Car Mileage (\${miles} mi)`;
+    document.getElementById('m-vendor').value = `Car Mileage (\${miles} mi)`;
   } else if (start && !end) {
     el.textContent = `Started at \${start} — enter end miles to calculate`;
   } else {
