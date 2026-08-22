@@ -268,7 +268,7 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
     </div>
 
     <div class="mileage-box" id="mileage-box" style="display:none;">
-      <span class="mb-label">🚗 Odometer / Miles — $0.76/mile (IRS Rate) · End miles optional</span>
+      <span class="mb-label">🚗 Odometer / Miles — $0.725/mile (IRS Rate) · End miles optional</span>
       <div class="odometer-row">
         <div class="form-group" style="gap:3px;">
           <label style="color:var(--accent2)">Start Miles</label>
@@ -422,14 +422,15 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let USER_ID = 'tj'; // will be set from Supabase auth session
 
-const RATE = 0.76;
+const RATE = 0.725;
 const CATS = ['Customer Engagements','Personal Travel Meals','Lodging','Rental Car','Air Transportation','Ground Transportation','Parking','EZPass/Tolls','Personal Car Mileage','Internet','Mobile Phone','Office Rent','Office Supplies','Postage','MedicalDentalVision Insurance','Business Email Account','Memberships','Donation','Professional Fees','Other'];
 const CAT_COLORS = {'Customer Engagements':'cat-meals','Personal Travel Meals':'cat-meals','Lodging':'cat-lodging','Rental Car':'cat-transport','Air Transportation':'cat-transport','Personal Car Mileage':'cat-mileage','Parking':'cat-parking','EZPass/Tolls':'cat-tolls','MedicalDentalVision Insurance':'cat-insurance','Mobile Phone':'cat-phone','Office Rent':'cat-rent','Internet':'cat-internet','Business Email Account':'cat-email','Ground Transportation':'cat-transport','Office Supplies':'cat-other','Postage':'cat-other','Memberships':'cat-other','Donation':'cat-other','Professional Fees':'cat-other','Other':'cat-other'};
 const RECURRING_DEFAULTS = [
   {id:'r1',vendor:'Office Rent',category:'Office Rent',amount:1200.00,enabled:true},
   {id:'r2',vendor:'BCBS Health',category:'MedicalDentalVision Insurance',amount:2670.12,enabled:true},
+  {id:'r3',vendor:'Verizon Wireless',category:'Mobile Phone',amount:265.99,enabled:true},
   {id:'r4',vendor:'Google Workspace',category:'Business Email Account',amount:12.00,enabled:true},
-  {id:'r5',vendor:'Apple iCloud',category:'Internet',amount:9.99,enabled:true},
+  {id:'r5',vendor:'Apple iCloud',category:'Internet',amount:2.99,enabled:true},
   {id:'r6',vendor:'Apple One',category:'Internet',amount:1.98,enabled:true},
 ];
 
