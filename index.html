@@ -316,7 +316,6 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
   <div class="info-banner">These are your fixed monthly charges. Toggle on/off then tap <strong>Apply to Selected Month</strong> when finalizing.</div>
   <div id="recurring-list"></div>
   <button class="btn btn-primary" onclick="applyRecurring()" style="margin-top:12px;">Apply to Selected Month</button>
-  <button class="btn" onclick="resetRecurring()" style="margin-top:8px;background:var(--border);color:var(--text);font-size:13px;">Reset to Defaults</button>
 </div>
 
 <!-- REPORT -->
@@ -451,14 +450,6 @@ function setLocalExpenses(arr) { allExpenses[currentMonthKey] = arr; }
 
 function saveRecurring() {
   localStorage.setItem('vel_rec', JSON.stringify(recurring));
-}
-
-function resetRecurring() {
-  if (!confirm('Reset recurring items to defaults? This cannot be undone.')) return;
-  recurring = JSON.parse(JSON.stringify(RECURRING_DEFAULTS));
-  saveRecurring();
-  renderRecurring();
-  showBanner('✓ Recurring items reset to defaults', 'success');
 }
 
 // ── SUPABASE DATA LAYER ──────────────────────────────
@@ -651,7 +642,7 @@ async function init() {
 function updateMonthBar() {
   document.getElementById('month-display-text').textContent = monthKeyToLabel(currentMonthKey);
   const exps = getExpenses();
-  const total = exps.reduce((s,e)=>s+(e.amount||0),0);
+  const total = exps.reduce((s,e)=>s+e.amount,0);
   document.getElementById('month-display-total').textContent = exps.length ? '$'+total.toFixed(2)+' · '+exps.length+' entries' : 'No entries yet';
   document.getElementById('print-month-label').textContent = monthKeyToLabel(currentMonthKey);
   document.getElementById('log-month-label').textContent = monthKeyToLabel(currentMonthKey);
@@ -683,23 +674,17 @@ function updateAddingToBanner() {
 }
 
 async function changeMonth(dir) {
-  console.log('changeMonth called, dir:', dir, 'currentMonthKey:', currentMonthKey);
-  try {
-    const d = monthKeyToDate(currentMonthKey);
-    d.setMonth(d.getMonth() + dir);
-    currentMonthKey = toMonthKey(d);
-    if (!allExpenses[currentMonthKey]) {
-      await loadMonthFromDB(currentMonthKey);
-    }
-    updateMonthBar();
-    setDefaultDate();
-    updateAddingToBanner();
-    renderLog();
-    renderReport();
-  } catch(err) {
-    console.error('Navigation error:', err);
-    showBanner('⚠️ Could not load month: ' + err.message, 'error');
+  const d = monthKeyToDate(currentMonthKey);
+  d.setMonth(d.getMonth() + dir);
+  currentMonthKey = toMonthKey(d);
+  if (!allExpenses[currentMonthKey]) {
+    await loadMonthFromDB(currentMonthKey);
   }
+  updateMonthBar();
+  setDefaultDate();
+  updateAddingToBanner();
+  renderLog();
+  renderReport();
 }
 
 function switchTab(tab) {
@@ -733,9 +718,6 @@ function calcOdo() {
     const miles = end - start;
     const amt = (miles * RATE).toFixed(2);
     el.innerHTML = `${miles} mi<small>$${amt} — tap →</small>`;
-    // Auto-fill amount and vendor immediately
-    document.getElementById('exp-amount').value = amt;
-    document.getElementById('exp-vendor').value = `Car Mileage (${miles} mi)`;
     el.onclick = () => {
       document.getElementById('exp-amount').value = amt;
       document.getElementById('exp-vendor').value = `Car Mileage (${miles} mi)`;
@@ -748,10 +730,6 @@ function calcOdo() {
 
 async function submitExpense() {
   try {
-    // Recalculate mileage amount in case oninput didn't fire
-    const catCheck = document.getElementById('cat-select').value;
-    if (catCheck === 'Personal Car Mileage') calcOdo();
-
     const cat = document.getElementById('cat-select').value;
     const date = document.getElementById('exp-date').value;
     const vendor = document.getElementById('exp-vendor').value.trim();
@@ -805,12 +783,11 @@ async function submitExpense() {
     resetForm();
     switchTab('log');
     showBanner('✓ Expense saved to cloud', 'success');
-    btn.textContent = 'Add Expense'; btn.disabled = false;
   } catch(err) {
     showFormError('Could not save: ' + err.message);
     console.error(err);
-    const submitBtn = document.getElementById('submit-btn');
-    if (submitBtn) { submitBtn.textContent = 'Add Expense'; submitBtn.disabled = false; }
+    const btn = document.getElementById('submit-btn');
+    if (btn) { btn.textContent = 'Add Expense'; btn.disabled = false; }
   }
 }
 
@@ -837,7 +814,6 @@ function resetForm() {
   document.getElementById('edit-id').value='';
   document.getElementById('form-title-label').textContent='+ Quick Add';
   document.getElementById('submit-btn').textContent='Add Expense';
-  document.getElementById('submit-btn').disabled=false;
   document.getElementById('mileage-box').style.display='none';
   document.getElementById('guest-row').style.display='none';
   document.getElementById('cat-select').value='';
@@ -915,11 +891,11 @@ function calcModalOdo() {
   if (start && end && end > start) {
     const miles = end - start;
     const amt = (miles * RATE).toFixed(2);
-    el.textContent = `${miles} miles × $${RATE}/mile = $${amt}`;
+    el.textContent = `\${miles} miles × $\${RATE}/mile = $\${amt}`;
     document.getElementById('m-amount').value = amt;
-    document.getElementById('m-vendor').value = `Car Mileage (${miles} mi)`;
+    document.getElementById('m-vendor').value = `Car Mileage (\${miles} mi)`;
   } else if (start && !end) {
-    el.textContent = `Started at ${start} — enter end miles to calculate`;
+    el.textContent = `Started at \${start} — enter end miles to calculate`;
   } else {
     el.textContent = 'Enter end miles to calculate';
   }
@@ -940,9 +916,8 @@ async function deleteExp(id) {
 }
 
 function renderLog() {
-  try {
   const exps = getExpenses();
-  const total = exps.reduce((s,e)=>s+(e.amount||0),0);
+  const total = exps.reduce((s,e)=>s+e.amount,0);
   document.getElementById('total-display').textContent='$'+total.toFixed(2);
   document.getElementById('entry-count').textContent=exps.length;
   const list=document.getElementById('log-list');
@@ -956,7 +931,7 @@ function renderLog() {
     const d=new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
     const badge=e.recurring?`<span class="badge">recurring</span>`:'';
     const sub=e.guest?` · ${e.guest}`:(e.travelNotes?` · 📍 ${e.travelNotes}`:'');
-    const inProgress = e.category==='Personal Car Mileage' && (!e.odoEnd || e.amount===0);
+    const inProgress = e.category==='Personal Car Mileage' && e.amount===0;
     const tripBadge = inProgress ? '<span class="badge" style="background:#fff3e0;color:#e65100;">in progress</span>' : '';
     return `<div class="expense-item ${e.recurring?'recurring':''}">
       <div class="cat-dot ${dot}"></div>
@@ -965,7 +940,7 @@ function renderLog() {
         <div class="expense-meta">${e.category}${sub}</div>
       </div>
       <div class="expense-right">
-        <div class="expense-amt">${inProgress ? '⏳' : '$'+(e.amount||0).toFixed(2)}</div>
+        <div class="expense-amt">${inProgress ? '⏳' : '$'+e.amount.toFixed(2)}</div>
         <div class="expense-date">${d}</div>
       </div>
       <div class="action-btns">
@@ -974,7 +949,6 @@ function renderLog() {
       </div>
     </div>`;
   }).join('');
-  } catch(err) { console.error('renderLog error:', err); }
 }
 
 function renderRecurring() {
@@ -1040,14 +1014,13 @@ async function applyRecurring() {
 function showAddToReport() { switchTab('add'); document.getElementById('form-title-label').textContent='+ Add Missing Expense'; }
 
 function renderReport() {
-  try {
   const exps=getExpenses();
   const pivot={};
-  exps.forEach(e=>{pivot[e.category]=(pivot[e.category]||0)+(e.amount||0);});
-  const total=exps.reduce((s,e)=>s+(e.amount||0),0);
+  exps.forEach(e=>{pivot[e.category]=(pivot[e.category]||0)+e.amount;});
+  const total=exps.reduce((s,e)=>s+e.amount,0);
   const cats=Object.entries(pivot).sort((a,b)=>a[0].localeCompare(b[0]));
   document.getElementById('pivot-body').innerHTML=
-    cats.map(([c,a])=>`<tr><td>${c}</td><td>$${(a||0).toFixed(2)}</td></tr>`).join('')+
+    cats.map(([c,a])=>`<tr><td>${c}</td><td>$${a.toFixed(2)}</td></tr>`).join('')+
     `<tr class="grand-total"><td>Grand Total</td><td>$${total.toFixed(2)}</td></tr>`;
 
   const sorted=[...exps].sort((a,b)=>a.date.localeCompare(b.date));
@@ -1074,7 +1047,7 @@ function renderReport() {
   const mileExps=exps.filter(e=>e.category==='Personal Car Mileage');
   const mCard=document.getElementById('mileage-summary-card');
   if (mileExps.length) {
-    const totalAmt=mileExps.reduce((s,e)=>s+(e.amount||0),0);
+    const totalAmt=mileExps.reduce((s,e)=>s+e.amount,0);
     let totalMiles=0;
     mileExps.forEach(e=>{ if(e.odoStart&&e.odoEnd) totalMiles+=(e.odoEnd-e.odoStart); });
     mCard.style.display='block';
@@ -1092,7 +1065,6 @@ function renderReport() {
         <span style="color:var(--accent);font-family:var(--mono)">$${totalAmt.toFixed(2)}</span>
       </div>`;
   } else { mCard.style.display='none'; }
-  } catch(err) { console.error('renderReport error:', err); }
 }
 
 async function clearMonth() {
