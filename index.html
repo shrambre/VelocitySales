@@ -651,7 +651,7 @@ async function init() {
 function updateMonthBar() {
   document.getElementById('month-display-text').textContent = monthKeyToLabel(currentMonthKey);
   const exps = getExpenses();
-  const total = exps.reduce((s,e)=>s+e.amount,0);
+  const total = exps.reduce((s,e)=>s+(e.amount||0),0);
   document.getElementById('month-display-total').textContent = exps.length ? '$'+total.toFixed(2)+' · '+exps.length+' entries' : 'No entries yet';
   document.getElementById('print-month-label').textContent = monthKeyToLabel(currentMonthKey);
   document.getElementById('log-month-label').textContent = monthKeyToLabel(currentMonthKey);
@@ -940,7 +940,7 @@ async function deleteExp(id) {
 
 function renderLog() {
   const exps = getExpenses();
-  const total = exps.reduce((s,e)=>s+e.amount,0);
+  const total = exps.reduce((s,e)=>s+(e.amount||0),0);
   document.getElementById('total-display').textContent='$'+total.toFixed(2);
   document.getElementById('entry-count').textContent=exps.length;
   const list=document.getElementById('log-list');
@@ -1039,8 +1039,8 @@ function showAddToReport() { switchTab('add'); document.getElementById('form-tit
 function renderReport() {
   const exps=getExpenses();
   const pivot={};
-  exps.forEach(e=>{pivot[e.category]=(pivot[e.category]||0)+e.amount;});
-  const total=exps.reduce((s,e)=>s+e.amount,0);
+  exps.forEach(e=>{pivot[e.category]=(pivot[e.category]||0)+(e.amount||0);});
+  const total=exps.reduce((s,e)=>s+(e.amount||0),0);
   const cats=Object.entries(pivot).sort((a,b)=>a[0].localeCompare(b[0]));
   document.getElementById('pivot-body').innerHTML=
     cats.map(([c,a])=>`<tr><td>${c}</td><td>$${(a||0).toFixed(2)}</td></tr>`).join('')+
@@ -1070,7 +1070,7 @@ function renderReport() {
   const mileExps=exps.filter(e=>e.category==='Personal Car Mileage');
   const mCard=document.getElementById('mileage-summary-card');
   if (mileExps.length) {
-    const totalAmt=mileExps.reduce((s,e)=>s+e.amount,0);
+    const totalAmt=mileExps.reduce((s,e)=>s+(e.amount||0),0);
     let totalMiles=0;
     mileExps.forEach(e=>{ if(e.odoStart&&e.odoEnd) totalMiles+=(e.odoEnd-e.odoStart); });
     mCard.style.display='block';
