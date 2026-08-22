@@ -683,6 +683,7 @@ function updateAddingToBanner() {
 }
 
 async function changeMonth(dir) {
+  console.log('changeMonth called, dir:', dir, 'currentMonthKey:', currentMonthKey);
   try {
     const d = monthKeyToDate(currentMonthKey);
     d.setMonth(d.getMonth() + dir);
