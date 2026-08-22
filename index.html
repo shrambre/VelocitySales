@@ -683,17 +683,22 @@ function updateAddingToBanner() {
 }
 
 async function changeMonth(dir) {
-  const d = monthKeyToDate(currentMonthKey);
-  d.setMonth(d.getMonth() + dir);
-  currentMonthKey = toMonthKey(d);
-  if (!allExpenses[currentMonthKey]) {
-    await loadMonthFromDB(currentMonthKey);
+  try {
+    const d = monthKeyToDate(currentMonthKey);
+    d.setMonth(d.getMonth() + dir);
+    currentMonthKey = toMonthKey(d);
+    if (!allExpenses[currentMonthKey]) {
+      await loadMonthFromDB(currentMonthKey);
+    }
+    updateMonthBar();
+    setDefaultDate();
+    updateAddingToBanner();
+    renderLog();
+    renderReport();
+  } catch(err) {
+    console.error('Navigation error:', err);
+    showBanner('⚠️ Could not load month: ' + err.message, 'error');
   }
-  updateMonthBar();
-  setDefaultDate();
-  updateAddingToBanner();
-  renderLog();
-  renderReport();
 }
 
 function switchTab(tab) {
