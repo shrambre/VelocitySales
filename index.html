@@ -739,6 +739,10 @@ function calcOdo() {
 
 async function submitExpense() {
   try {
+    // Recalculate mileage amount in case oninput didn't fire
+    const catCheck = document.getElementById('cat-select').value;
+    if (catCheck === 'Personal Car Mileage') calcOdo();
+
     const cat = document.getElementById('cat-select').value;
     const date = document.getElementById('exp-date').value;
     const vendor = document.getElementById('exp-vendor').value.trim();
@@ -942,7 +946,7 @@ function renderLog() {
     const d=new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
     const badge=e.recurring?`<span class="badge">recurring</span>`:'';
     const sub=e.guest?` · ${e.guest}`:(e.travelNotes?` · 📍 ${e.travelNotes}`:'');
-    const inProgress = e.category==='Personal Car Mileage' && e.amount===0;
+    const inProgress = e.category==='Personal Car Mileage' && (!e.odoEnd || e.amount===0);
     const tripBadge = inProgress ? '<span class="badge" style="background:#fff3e0;color:#e65100;">in progress</span>' : '';
     return `<div class="expense-item ${e.recurring?'recurring':''}">
       <div class="cat-dot ${dot}"></div>
