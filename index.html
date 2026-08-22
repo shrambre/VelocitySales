@@ -939,6 +939,7 @@ async function deleteExp(id) {
 }
 
 function renderLog() {
+  try {
   const exps = getExpenses();
   const total = exps.reduce((s,e)=>s+(e.amount||0),0);
   document.getElementById('total-display').textContent='$'+total.toFixed(2);
@@ -972,6 +973,7 @@ function renderLog() {
       </div>
     </div>`;
   }).join('');
+  } catch(err) { console.error('renderLog error:', err); }
 }
 
 function renderRecurring() {
@@ -1037,6 +1039,7 @@ async function applyRecurring() {
 function showAddToReport() { switchTab('add'); document.getElementById('form-title-label').textContent='+ Add Missing Expense'; }
 
 function renderReport() {
+  try {
   const exps=getExpenses();
   const pivot={};
   exps.forEach(e=>{pivot[e.category]=(pivot[e.category]||0)+(e.amount||0);});
@@ -1088,6 +1091,7 @@ function renderReport() {
         <span style="color:var(--accent);font-family:var(--mono)">$${totalAmt.toFixed(2)}</span>
       </div>`;
   } else { mCard.style.display='none'; }
+  } catch(err) { console.error('renderReport error:', err); }
 }
 
 async function clearMonth() {
