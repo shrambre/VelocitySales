@@ -316,6 +316,7 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
   <div class="info-banner">These are your fixed monthly charges. Toggle on/off then tap <strong>Apply to Selected Month</strong> when finalizing.</div>
   <div id="recurring-list"></div>
   <button class="btn btn-primary" onclick="applyRecurring()" style="margin-top:12px;">Apply to Selected Month</button>
+  <button class="btn" onclick="resetRecurring()" style="margin-top:8px;background:var(--border);color:var(--text);font-size:13px;">Reset to Defaults</button>
 </div>
 
 <!-- REPORT -->
@@ -450,6 +451,14 @@ function setLocalExpenses(arr) { allExpenses[currentMonthKey] = arr; }
 
 function saveRecurring() {
   localStorage.setItem('vel_rec', JSON.stringify(recurring));
+}
+
+function resetRecurring() {
+  if (!confirm('Reset recurring items to defaults? This cannot be undone.')) return;
+  recurring = JSON.parse(JSON.stringify(RECURRING_DEFAULTS));
+  saveRecurring();
+  renderRecurring();
+  showBanner('✓ Recurring items reset to defaults', 'success');
 }
 
 // ── SUPABASE DATA LAYER ──────────────────────────────
