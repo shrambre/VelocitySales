@@ -963,7 +963,7 @@ function renderLog() {
         <div class="expense-meta">${e.category}${sub}</div>
       </div>
       <div class="expense-right">
-        <div class="expense-amt">${inProgress ? '⏳' : '$'+e.amount.toFixed(2)}</div>
+        <div class="expense-amt">${inProgress ? '⏳' : '$'+(e.amount||0).toFixed(2)}</div>
         <div class="expense-date">${d}</div>
       </div>
       <div class="action-btns">
@@ -1043,7 +1043,7 @@ function renderReport() {
   const total=exps.reduce((s,e)=>s+e.amount,0);
   const cats=Object.entries(pivot).sort((a,b)=>a[0].localeCompare(b[0]));
   document.getElementById('pivot-body').innerHTML=
-    cats.map(([c,a])=>`<tr><td>${c}</td><td>$${a.toFixed(2)}</td></tr>`).join('')+
+    cats.map(([c,a])=>`<tr><td>${c}</td><td>$${(a||0).toFixed(2)}</td></tr>`).join('')+
     `<tr class="grand-total"><td>Grand Total</td><td>$${total.toFixed(2)}</td></tr>`;
 
   const sorted=[...exps].sort((a,b)=>a.date.localeCompare(b.date));
