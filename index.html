@@ -22,8 +22,8 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
 .nav-right .nav-label { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 1px; }
 
 /* MONTH SELECTOR */
-.month-bar { background: #0d3f63; padding: 8px 16px; display: flex; align-items: center; justify-content: center; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.month-nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 8px; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
+.month-bar { background: #0d3f63; padding: 8px 16px; display: flex; align-items: center; justify-content: center; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 201; }
+.month-nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 8px; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; position: relative; z-index: 201; }
 .month-nav-btn:hover { background: rgba(255,255,255,0.2); }
 .month-nav-btn:disabled { opacity: 0.3; cursor: default; }
 .month-display { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 1px; min-width: 180px; text-align: center; }
@@ -268,7 +268,7 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
     </div>
 
     <div class="mileage-box" id="mileage-box" style="display:none;">
-      <span class="mb-label">🚗 Odometer / Miles — $0.725/mile (IRS Rate) · End miles optional</span>
+      <span class="mb-label">🚗 Odometer / Miles — $0.76/mile (IRS Rate) · End miles optional</span>
       <div class="odometer-row">
         <div class="form-group" style="gap:3px;">
           <label style="color:var(--accent2)">Start Miles</label>
@@ -422,7 +422,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let USER_ID = 'tj'; // will be set from Supabase auth session
 
-const RATE = 0.725;
+const RATE = 0.76;
 const CATS = ['Customer Engagements','Personal Travel Meals','Lodging','Rental Car','Air Transportation','Ground Transportation','Parking','EZPass/Tolls','Personal Car Mileage','Internet','Mobile Phone','Office Rent','Office Supplies','Postage','MedicalDentalVision Insurance','Business Email Account','Memberships','Donation','Professional Fees','Other'];
 const CAT_COLORS = {'Customer Engagements':'cat-meals','Personal Travel Meals':'cat-meals','Lodging':'cat-lodging','Rental Car':'cat-transport','Air Transportation':'cat-transport','Personal Car Mileage':'cat-mileage','Parking':'cat-parking','EZPass/Tolls':'cat-tolls','MedicalDentalVision Insurance':'cat-insurance','Mobile Phone':'cat-phone','Office Rent':'cat-rent','Internet':'cat-internet','Business Email Account':'cat-email','Ground Transportation':'cat-transport','Office Supplies':'cat-other','Postage':'cat-other','Memberships':'cat-other','Donation':'cat-other','Professional Fees':'cat-other','Other':'cat-other'};
 const RECURRING_DEFAULTS = [
