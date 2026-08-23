@@ -718,11 +718,10 @@ function calcOdo() {
   } else if (start && end && end > start) {
     const miles = end - start;
     const amt = (miles * RATE).toFixed(2);
-    el.innerHTML = `${miles} mi<small>$${amt} — tap →</small>`;
-    el.onclick = () => {
-      document.getElementById('exp-amount').value = amt;
-      document.getElementById('exp-vendor').value = `Car Mileage (${miles} mi)`;
-    };
+    el.innerHTML = `${miles} mi<small>$${amt}</small>`;
+    document.getElementById('exp-amount').value = amt;
+    document.getElementById('exp-vendor').value = `Car Mileage (${miles} mi)`;
+    el.onclick = null;
   } else {
     el.innerHTML = `0 mi<small>tap to fill →</small>`;
     el.onclick = null;
