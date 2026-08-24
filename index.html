@@ -83,7 +83,7 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
 .miles-result small { display: block; font-size: 9px; color: var(--muted); margin-top: 2px; }
 .rate-note { font-size: 10px; color: var(--muted); margin-top: 6px; }
 
-.btn { padding: 13px 20px; border-radius: 10px; border: none; font-weight: 700; font-size: 14px; letter-spacing: 1px; cursor: pointer; transition: all 0.15s; text-transform: uppercase; width: 100%; font-family: 'Lato', sans-serif; }
+.btn { padding: 13px 20px; border-radius: 10px; border: none; font-weight: 700; font-size: 14px; letter-spacing: 1px; cursor: pointer; transition: all 0.15s; text-transform: uppercase; width: 100%; font-family: 'Lato', sans-serif; position: relative; z-index: 10; }
 .btn-primary { background: linear-gradient(135deg, #1a6fa8, #2a9fd6); color: #fff; box-shadow: 0 3px 12px rgba(26,111,168,0.25); }
 .btn-primary:active { transform: scale(0.97); }
 .btn-secondary { background: transparent; border: 1.5px solid var(--border); color: var(--muted); margin-top: 8px; }
@@ -136,7 +136,7 @@ nav { background: linear-gradient(135deg, #0d3f63 0%, #1a6fa8 60%, #2a9fd6 100%)
 .login-error { background: #fdecea; border: 1px solid #f5a9a3; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #c0392b; font-weight: 700; margin-bottom: 14px; display: none; text-align: center; }
 .logout-btn { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 11px; font-weight: 700; padding: 5px 10px; cursor: pointer; letter-spacing: 0.5px; }
 
-.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1.5px solid var(--border); padding: 10px 20px; display: flex; justify-content: center; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); }
+.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1.5px solid var(--border); padding: 10px 20px; display: flex; justify-content: center; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); z-index: 5; }
 .quick-add-fab { background: linear-gradient(135deg, #1a6fa8, #2a9fd6); color: #fff; border: none; border-radius: 50px; padding: 12px 36px; font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 2px; cursor: pointer; box-shadow: 0 4px 16px rgba(26,111,168,0.35); transition: all 0.15s; }
 .quick-add-fab:active { transform: scale(0.96); }
 
@@ -556,6 +556,7 @@ function showBanner(msg, type) {
   el.style.color = type==='error' ? '#c0392b' : '#1a7a4a';
   el.textContent = msg;
   el.style.opacity = '1';
+  el.style.pointerEvents = 'none';
   setTimeout(() => { el.style.opacity = '0'; }, 3000);
 }
 
