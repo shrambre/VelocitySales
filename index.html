@@ -428,16 +428,17 @@ const CAT_COLORS = {'Customer Engagements':'cat-meals','Personal Travel Meals':'
 const RECURRING_DEFAULTS = [
   {id:'r1',vendor:'Office Rent',category:'Office Rent',amount:1200.00,enabled:true},
   {id:'r2',vendor:'BCBS Health',category:'MedicalDentalVision Insurance',amount:2670.12,enabled:true},
-  {id:'r3',vendor:'Verizon Wireless',category:'Mobile Phone',amount:265.99,enabled:true},
   {id:'r4',vendor:'Google Workspace',category:'Business Email Account',amount:12.00,enabled:true},
-  {id:'r5',vendor:'Apple iCloud',category:'Internet',amount:2.99,enabled:true},
+  {id:'r5',vendor:'Apple iCloud',category:'Internet',amount:9.99,enabled:true},
   {id:'r6',vendor:'Apple One',category:'Internet',amount:1.98,enabled:true},
 ];
 
 // ── STATE ────────────────────────────────────────────
 let currentMonthKey = toMonthKey(new Date());
 let allExpenses = {}; // { "2026-04": [...] } — in-memory cache
-let recurring = JSON.parse(localStorage.getItem('vel_rec') || JSON.stringify(RECURRING_DEFAULTS));
+// Storage key is versioned: bump it (v3, v4...) whenever RECURRING_DEFAULTS changes so every device picks up the new list
+const REC_KEY = 'vel_rec_v2';
+let recurring = JSON.parse(localStorage.getItem(REC_KEY) || JSON.stringify(RECURRING_DEFAULTS));
 let isLoading = false;
 
 function toMonthKey(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
@@ -450,7 +451,7 @@ function getExpenses() { return allExpenses[currentMonthKey] || []; }
 function setLocalExpenses(arr) { allExpenses[currentMonthKey] = arr; }
 
 function saveRecurring() {
-  localStorage.setItem('vel_rec', JSON.stringify(recurring));
+  localStorage.setItem(REC_KEY, JSON.stringify(recurring));
 }
 
 // ── SUPABASE DATA LAYER ──────────────────────────────
