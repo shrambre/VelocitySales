@@ -61,7 +61,7 @@ textarea{min-height:80px;resize:vertical}
 .inv-totals tr.due td{background:var(--navy);color:#fff;font-weight:700;font-size:15px}
 .inv-totals tr.sub td{border-top:1px solid var(--border)}
 
-@media (max-width:560px){
+@media screen and (max-width:560px){
   #invoice{padding:16px;font-size:12px}
   .inv-logo{width:80px}
   .inv-title h3{font-size:26px}
@@ -71,6 +71,11 @@ textarea{min-height:80px;resize:vertical}
 }
 @media print{
   @page{margin:.5in}
+  #invoice{font-size:13px}
+  .inv-logo{width:110px}
+  .inv-title h3{font-size:34px}
+  .inv-parties{grid-template-columns:1fr 1fr}
+  .inv-bottom{grid-template-columns:1fr 280px}
   body{background:#fff;padding:0}
   .noprint{display:none!important}
   .wrap{padding:0;max-width:none}
