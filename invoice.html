@@ -103,7 +103,7 @@ textarea{min-height:80px;resize:vertical}
       <div class="card">
         <h2>Invoice details</h2>
         <div class="row r2">
-          <div><label for="inv-no">Invoice #</label><input id="inv-no" type="text" inputmode="numeric" value="17"></div>
+          <div><label for="inv-no">Invoice #</label><input id="inv-no" type="text" inputmode="numeric" value="" placeholder="Enter #"></div>
           <div><label for="inv-date">Invoice date</label><input id="inv-date" type="date"></div>
         </div>
         <div class="row r2">
@@ -279,7 +279,7 @@ function init(){
   });
   $('print-btn').addEventListener('click', () => window.print());
   // File name for the saved PDF
-  window.addEventListener('beforeprint', () => { document.title = 'Invoice ' + ($('inv-no').value || '') + ' - Velocity Sales'; });
+  window.addEventListener('beforeprint', () => { document.title = ('Invoice ' + ($('inv-no').value.trim() || '')).trim() + ' - Velocity Sales'; });
   window.addEventListener('afterprint', () => { document.title = 'Velocity Invoice'; });
   $('app').style.display = 'block';
 }
