@@ -50,6 +50,8 @@ textarea{min-height:80px;resize:vertical}
 .inv-items th:first-child{text-align:left}
 .inv-items td{padding:9px 8px;border-bottom:1px solid var(--border);text-align:right;vertical-align:top}
 .inv-items td:first-child{text-align:left;width:50%}
+.inv-items tr.period-row td{font-weight:700;background:#eef3f9;text-align:left;border-bottom:1px solid var(--border)}
+.inv-items tr.acct-row td:first-child{padding-left:24px}
 .inv-bottom{display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start}
 .remarks h4{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .remarks div{white-space:pre-wrap}
@@ -73,7 +75,7 @@ textarea{min-height:80px;resize:vertical}
   .noprint{display:none!important}
   .wrap{padding:0;max-width:none}
   #invoice{border:none;border-radius:0;padding:0}
-  .inv-items th,.inv-totals tr.due td,.inv-parties h4{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .inv-items th,.inv-items tr.period-row td,.inv-totals tr.due td,.inv-parties h4{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 </style>
 </head>
@@ -103,14 +105,14 @@ textarea{min-height:80px;resize:vertical}
           <div><label for="p-start">Period start</label><input id="p-start" type="date"></div>
           <div><label for="p-end">Period end</label><input id="p-end" type="date"></div>
         </div>
-        <p class="hint" style="margin-top:0">Period defaults to last month. It appears in each line's description.</p>
+        <p class="hint" style="margin-top:0">Period defaults to last month. It appears on the Commission for Sales line.</p>
       </div>
 
       <div class="card">
         <h2>Line items</h2>
         <div id="lines"></div>
         <button class="btn btn-ghost" id="add-line" type="button">+ Add another account</button>
-        <p class="hint">Enter quantity plus either the unit price or the total. The other one fills in automatically.</p>
+        <p class="hint">Enter the quantity (lbs.) and total from the vendor's email.</p>
       </div>
 
       <div class="card">
@@ -138,7 +140,7 @@ textarea{min-height:80px;resize:vertical}
         <div><h4>Ship To</h4><div id="v-ship"></div></div>
       </div>
       <table class="inv-items">
-        <thead><tr><th>Description</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead>
+        <thead><tr><th>Description</th><th>Quantity (lbs.)</th><th>Total</th></tr></thead>
         <tbody id="v-items"></tbody>
       </table>
       <div class="inv-bottom">
@@ -171,19 +173,15 @@ const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
 const round2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
 const money = n => '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const qtyFmt = n => n.toLocaleString('en-US',{maximumFractionDigits:2});
-const unitFmt = n => { let s = n.toFixed(4); if (s.endsWith('00')) s = s.slice(0,-2); else if (s.endsWith('0')) s = s.slice(0,-1); return '$' + Number(s).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4}); };
 const isoToUS = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m ? m[2]+'-'+m[3]+'-'+m[1] : ''; };
 const pad = n => String(n).padStart(2,'0');
 const toISO = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 
 // ── state ──────────────────────────────────────────────
 let lines = [];
-const newLine = () => ({account:'', custom:'', qty:'', unit:'', total:'', src:'unit'});
+const newLine = () => ({account:'', custom:'', qty:'', total:''});
 
-function lineTotal(L){
-  if (L.total !== '') return round2(num(L.total));
-  return round2(num(L.qty) * num(L.unit));
-}
+function lineTotal(L){ return round2(num(L.total)); }
 function accountName(L){ return L.account === OTHER ? L.custom.trim() : L.account; }
 
 function renderLines(){
@@ -198,10 +196,9 @@ function renderLines(){
         </select>
         <input class="custom" data-f="custom" type="text" placeholder="Account name" value="${esc(L.custom)}" style="${L.account===OTHER?'display:block':''}">
       </div></div>
-      <div class="row r3" style="margin-bottom:0">
-        <div><label>Qty (lbs)</label><input data-f="qty" type="number" inputmode="decimal" step="any" min="0" value="${esc(L.qty)}"></div>
-        <div><label>Unit price</label><input data-f="unit" type="number" inputmode="decimal" step="any" min="0" value="${esc(L.unit)}"></div>
-        <div><label>Total</label><input data-f="total" type="number" inputmode="decimal" step="0.01" min="0" value="${esc(L.total)}"></div>
+      <div class="row r2" style="margin-bottom:0">
+        <div><label>Quantity (lbs.)</label><input data-f="qty" type="number" inputmode="decimal" step="any" min="0" value="${esc(L.qty)}"></div>
+        <div><label>Total ($)</label><input data-f="total" type="number" inputmode="decimal" step="0.01" min="0" value="${esc(L.total)}"></div>
       </div>
       ${lines.length>1 ? '<button class="rm" type="button" data-rm="'+i+'">Remove this line</button>' : ''}
     </div>`).join('');
@@ -212,19 +209,6 @@ function onLineInput(e){
   const L = lines[+row.dataset.i]; const f = e.target.dataset.f; if (!f) return;
   L[f] = e.target.value;
   if (f === 'account') row.querySelector('.custom').style.display = L.account === OTHER ? 'block' : 'none';
-  if (f === 'unit') L.src = 'unit';
-  if (f === 'total') L.src = 'total';
-  if (f === 'qty' || f === 'unit' || f === 'total') {
-    if (L.src === 'unit' && L.unit !== '' && L.qty !== '') {
-      L.total = round2(num(L.qty) * num(L.unit)).toFixed(2);
-      row.querySelector('[data-f=total]').value = L.total;
-    } else if (L.src === 'total' && L.total !== '' && num(L.qty) > 0) {
-      let s = (num(L.total) / num(L.qty)).toFixed(4);
-      if (s.endsWith('00')) s = s.slice(0,-2); else if (s.endsWith('0')) s = s.slice(0,-1);
-      L.unit = s;
-      row.querySelector('[data-f=unit]').value = L.unit;
-    }
-  }
   renderPreview();
 }
 
@@ -238,15 +222,16 @@ function renderPreview(){
 
   const period = `${isoToUS($('p-start').value)} to ${isoToUS($('p-end').value)}`;
   let sub = 0;
-  const rows = lines.filter(L => L.account || L.qty !== '' || L.unit !== '' || L.total !== '').map(L => {
+  const active = lines.filter(L => L.account || L.qty !== '' || L.total !== '');
+  const rows = active.map(L => {
     const t = lineTotal(L); sub += t;
     const acct = accountName(L);
-    return `<tr><td>Commission for Sales from ${esc(period.replace(' to ',' to '))}${acct ? '<br>Account: ' + esc(acct) : ''}</td>` +
+    return `<tr class="acct-row"><td>${acct ? 'Account: ' + esc(acct) : '&nbsp;'}</td>` +
            `<td>${L.qty !== '' ? esc(qtyFmt(num(L.qty))) : ''}</td>` +
-           `<td>${L.unit !== '' ? esc(unitFmt(num(L.unit))) : ''}</td>` +
            `<td>${money(t)}</td></tr>`;
   });
-  $('v-items').innerHTML = rows.join('') || '<tr><td colspan="4" style="color:#6b778c">Add a line item above.</td></tr>';
+  const head = active.length ? `<tr class="period-row"><td colspan="3">Commission for Sales from ${esc(period)}</td></tr>` : '';
+  $('v-items').innerHTML = (head + rows.join('')) || '<tr><td colspan="3" style="color:#6b778c">Add a line item above.</td></tr>';
 
   sub = round2(sub);
   const disc = round2(num($('discount').value));
